@@ -60,4 +60,5 @@ RUN opam-sandbox-disable && \
 RUN opam install -y depext
 RUN opam depext -y jupyter merlin bos ocamlformat
 RUN opam install -y jupyter merlin bos ocamlformat
-RUN sudo -E jupyter kernelspec install --name ocaml-jupyter "$(opam config var share)/jupyter"
+RUN /opt/conda/bin/jupyter kernelspec install --user --name ocaml-jupyter "$(opam config var share)/jupyter"
+WORKDIR /home/jovyan
