@@ -1,7 +1,11 @@
-ARG BASE_CONTAINER=jupyter/minimal-notebook
+ARG BASE_CONTAINER=jupyter/minimal-notebook:1386e2046833
 FROM $BASE_CONTAINER
 
 USER root
+ARG NB_USER=jovyan
+ARG NB_UID=1000
+ENV USER ${NB_USER}
+ENV NB_UID ${NB_UID}
 
 RUN apt-get -y update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && \
@@ -56,9 +60,18 @@ RUN mkdir .ssh && \
   git clone git://github.com/ocaml/opam-repository /home/jovyan/opam-repository
 WORKDIR /home/jovyan/opam-repository
 RUN opam-sandbox-disable && \
-  opam init -k git -a /home/jovyan/opam-repository
+  opam init -k git --switch=4.08.1 -c ocaml-base-compiler.4.08.1 -a /home/jovyan/opam-repository
 RUN opam install -y depext
 RUN opam depext -y jupyter merlin bos ocamlformat
 RUN opam install -y jupyter merlin bos ocamlformat
 RUN /opt/conda/bin/jupyter kernelspec install --user --name ocaml-jupyter "$(opam config var share)/jupyter"
 WORKDIR /home/jovyan
+
+USER root
+
+# Make sure the contents of our repo are in ${HOME}
+COPY . ${HOME}
+USER root
+RUN chown -R ${NB_UID} ${HOME}
+USER ${NB_USER}
+
